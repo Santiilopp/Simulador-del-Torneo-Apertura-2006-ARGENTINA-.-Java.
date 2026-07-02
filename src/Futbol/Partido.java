@@ -1,4 +1,4 @@
-package Futbol;
+package futbol;
 
 import java.util.Random;
 
@@ -7,7 +7,7 @@ public class Partido {
 	// los clubes que se enfrentan
 	private Club local;
 	private Club visitante;
-	
+
 	// el atributo aleatorio para los partidos
 	private Random generador = new Random();
 
@@ -33,9 +33,11 @@ public class Partido {
 
 	/**
 	 * pre: Club correctamente inicializado. post: Se generaran ,de forma aleatoria,
-	 * entre 2 y 6 chances de gol. Dependiendo del nivel del club, las
+	 * entre 2 y 5 chances de gol. Dependiendo del nivel del club, las
 	 * probabilidades de que la chance sea gol aumentaran o disminuiran. Al
-	 * finalizar la simulacion, se retornan los goles anotados por el club.
+	 * finalizar la simulacion, se retornan los goles anotados por el club. En caso
+	 * de que sea gol, se definira si el gol lo anoto un jugador del plantel, o si
+	 * simplemete fue anotado por algun jugador del equipo.
 	 * 
 	 * @param club club al que se le generaran los goles.
 	 * @return la cantidad de goles que anotara.
@@ -44,7 +46,7 @@ public class Partido {
 		// declaro variable que representa el nivel del club
 		double nivel = club.getNivel();
 		// declaro variable que representa la probabilidad de gol
-		double probabilidadDeGol = nivel / (nivel+6);
+		double probabilidadDeGol = nivel / (nivel + 6);
 		// genero las chances de gol
 		int chances = this.generador.nextInt(2, 6);
 		// inicializo acumulador
@@ -53,15 +55,16 @@ public class Partido {
 		for (int i = 0; i < chances; i++) {
 			if (generador.nextDouble() < probabilidadDeGol) {
 				goles++;
+				club.registrarGoleador();
 			}
 		}
 		return goles;
 	}
 
 	/**
-	 * post: Se desarrolla el partido,
-	 * el nivel de cada equipo determina la probabilidad de ganar. Al terminar el
-	 * partido, los puntos y goles se modifican en ambos clubes.
+	 * post: Se desarrolla el partido, el nivel de cada equipo determina la
+	 * probabilidad de ganar. Al terminar el partido, los puntos y goles se
+	 * modifican en ambos clubes.
 	 */
 	public void simularPartido() {
 		// genero los goles de ambos clubes y los guardo en variables
@@ -80,8 +83,11 @@ public class Partido {
 			local.empate(golesLocal, golesVisitante);
 			visitante.empate(golesVisitante, golesLocal);
 		}
+		System.out.println(local.getNombre() + " " + golesLocal);
+		System.out.println(visitante.getNombre() + " " + golesVisitante);
+		System.out.println();
 	}
-	
+
 	/**
 	 * @return el nombre de ambos equipos para poder utilizarlo en el fixture.
 	 */
