@@ -1,9 +1,8 @@
-package Futbol;
+package futbol;
 
 /*
  * ------------------------------------------------
- * ----- INSPIRADO EN EL TORNEO APERTURA 2006 -----
- * ------------- simulador de futbol --------------
+ * ------------- SUMULADOR DE FUTBOL --------------
  * ------------------------------------------------
  */
 public class Liga {
@@ -16,52 +15,23 @@ public class Liga {
 	/**
 	 * post: inicializa el constructor.
 	 */
-	public Liga() {
+	public Liga(Club[] clubes) {
 		// asigno la cantidad de clubes que tiene el torneo
-		this.clubes = new Club[20];
+		this.clubes = clubes;
 		// asigno 19 fechas, de 10 partidos cada una
-		this.fixture = new Partido[19][10];
-		// inicializo cada club
-		inicializarClubes();
+		this.fixture = new Partido[clubes.length - 1][clubes.length / 2];
+		// genero el fixture
 		generarFixture();
 	}
 
 	/**
-	 * post: Inicializa el arreglo de clubes con los equipos del torneo apertura
-	 * 2006. Se asigna el nivel y nombre de cada uno.
+	 * pre: Clubes correctamente inicializados. Cantidad de clubes mayor o igual a
+	 * 2. post: Se genera un fixture de todos contra todos. Sin repetir partidos.
 	 */
-	private void inicializarClubes() {
-		// todos los clubes del torneo apertura 2006
-		this.clubes[0] = new Club("Estudiantes (LP) ----", 10);
-		this.clubes[1] = new Club("Boca Juniors --------", 10);
-		this.clubes[2] = new Club("River Plate ---------", 10);
-		this.clubes[3] = new Club("San Lorenzo ---------", 9);
-		this.clubes[4] = new Club("Independiente -------", 9);
-		this.clubes[5] = new Club("Arsenal -------------", 8);
-		this.clubes[6] = new Club("Lanus ---------------", 8);
-		this.clubes[7] = new Club("Velez Sarsfield -----", 8);
-		this.clubes[8] = new Club("Rosario Central -----", 7);
-		this.clubes[9] = new Club("Racing Club ---------", 7);
-		this.clubes[10] = new Club("Gimnasia (J) -------", 5);
-		this.clubes[11] = new Club("Gimnasia (LP) ------", 6);
-		this.clubes[12] = new Club("Belgrano -----------", 5);
-		this.clubes[13] = new Club("Nueva Chicago ------", 4);
-		this.clubes[14] = new Club("Banfield -----------", 4);
-		this.clubes[15] = new Club("Argentinos Juniors -", 6);
-		this.clubes[16] = new Club("Colon --------------", 5);
-		this.clubes[17] = new Club("Godoy Cruz ---------", 4);
-		this.clubes[18] = new Club("Newell's Old Boys --", 3);
-		this.clubes[19] = new Club("Quilmes ------------", 2);
-	}
-
-	/**
-	 * pre: Clubes correctamente inicializados. post: Se genera un fixture de 19
-	 * fechas todos contra todos. Sin repetir partidos.
-	 */
-	public void generarFixture() {
+	private void generarFixture() {
 		// en caso que no hayaal menos 2 equipos
-		if (this.clubes.length < 2) {
-			throw new Error("No hay cantidad suficiente de equipos para armar el fixture.");
+		if (this.clubes.length < 2 || this.clubes.length % 2 != 0) {
+			throw new Error("La cantidad de clubes es impar o menor a 2.");
 		}
 		// creo un arreglo auxiliar para armar el fixture
 		Club[] enfrentamientos = new Club[this.clubes.length];
@@ -126,7 +96,10 @@ public class Liga {
 	public void jugarTorneo() {
 		// recorro el fixture
 		for (int i = 0; i < fixture.length; i++) {
+			System.out.println("====== FECHA " + (i + 1) + " ======");
+			System.out.println();
 			jugarFecha(i);
+			System.out.println();
 		}
 	}
 
@@ -173,6 +146,8 @@ public class Liga {
 	 */
 	public void mostrarTabla() {
 		// imprimo las estadisticas
+		System.out.println("\t========== TABLA DEL TORNEO ==========");
+		System.out.println();
 		System.out.println("Pos:\t Equipo:\t\tPts\tPJ\tPG\tPE\tPP\tGF\tGC\tDG\t");
 		for (int i = 0; i < clubes.length; i++) {
 			System.out.println(clubes[i].getPosicion() + "\t" + clubes[i].getNombre() + "\t" + clubes[i].getPuntos()
@@ -183,19 +158,85 @@ public class Liga {
 		}
 	}
 
-	/*
-	 * probando los metodoooooos
+	/**
+	 * pre: Todos los equipos deben tener sus jugadores inicializados. post: se crea
+	 * un arreglo con todos los jugadores del torneo.
+	 * 
+	 * @return Todos los jugadores del torneo.
 	 */
-	public static void main(String[] arms) {
-		Liga argentina = new Liga();
-		argentina.mostrarFixture();
-		argentina.jugarTorneo();
-		argentina.ordenarTabla();
-		argentina.mostrarTabla();
+	private Jugador[] jugadoresDelTorneo() {
+		// creo un arreglo de todos los jugaodres de tamaño tres veces mayor a la
+		// cantidad de clubes.
+		Jugador[] jugadores = new Jugador[clubes.length * 3];
+		// declaro una variable que servira como indice para jugadores
+		int indice = 0;
+		// recorro el arreglo almacenando a los jugadores
+		for (int i = 0; i < clubes.length; i++) {
+			// creo un arreglo llamado plantel, que contendra los jugadores del club en la
+			// posicion i.
+			Jugador[] plantel = clubes[i].getJugadores();
+			// ahora si, recorro plantel y aumento una al indice cada vez que asigne un
+			// jugador al arreglo jugadores.
+			for (int j = 0; j < plantel.length; j++) {
+				jugadores[indice] = plantel[j];
+				indice++;
+			}
+		}
+		return jugadores;
+	}
+
+	/**
+	 * pre: Invocar el metodo jugadoresDelTorneo correctamente. post: Se ordena el
+	 * arreglo en base a la cantidad de goles de los jugadores.
+	 * 
+	 * @return El arreglo de los goleadores.
+	 */
+	private Jugador[] ordenarGoleadores() {
+		// invoco el metodo jugadores del torneo y lo asigno a la variable goleadores.
+		Jugador[] goleadores = jugadoresDelTorneo();
+		// declaro una variable que detiene el ordenamiento
+		boolean huboIntercambio = true;
+		// ordeno por burbujeo
+		while (huboIntercambio) {
+			huboIntercambio = false;
+			for (int i = 0; i < goleadores.length - 1; i++) {
+				// declaro variable para controlar los intercambios.
+				boolean intercambiar = false;
+				if (goleadores[i + 1].getGoles() > goleadores[i].getGoles()) {
+					intercambiar = true;
+				}
+				// intercambio en caso de ser necesario
+				if (intercambiar) {
+					Jugador aux = goleadores[i];
+					goleadores[i] = goleadores[i + 1];
+					goleadores[i + 1] = aux;
+					huboIntercambio = true;
+				}
+			}
+		}
+		// asigno las posiciones
+		for (int i = 0; i < 8; i++) {
+			goleadores[i].asignarPosicionEnTablaDeGoleadores(i + 1);
+		}
+		return goleadores;
+	}
+
+	/**
+	 * post: Se plasma los 8 mayores goleadores del torneo, se indica su posicion en
+	 * la tabla, su nombre, club al que pertenece y la cantidad de goles anotados.
+	 */
+	public void mostrarGoleadores() {
+		// ordeno los goleadores
+		Jugador[] tablaGol = ordenarGoleadores();
+		// imprimo las estadisticas de los jugadores.
+
 		System.out.println();
-		System.out.println("Santiago Lopez 2026.");
-		System.out.println("Gracias profes por probar este mini torneo, trate de utilizar todo lo que se nos enseño.");
-		System.out.println("Cualquier consejo o critica acerca de como esta construido el codigo se agradece.");
-		System.out.println("¿Pudieron salir campeones? :)");
+		System.out.println("\t========== TABLA DE GOLEADORES ========== ");
+		System.out.println();
+		System.out.println("Pos:\t Nombre:\t\t Equipo\t\t\t Goles:");
+		for (int i = 0; i < 8; i++) {
+			System.out.println(tablaGol[i].getPosicionEnTablaDeGoleadores() + " \t " + tablaGol[i].getNombre() + " \t "
+					+ tablaGol[i].getClub().getNombre() + " \t " + tablaGol[i].getGoles());
+		}
 	}
 }
